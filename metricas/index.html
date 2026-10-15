@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Métricas UX · Sprint 26.10.1.0</title>
+<style>
+:root{--bg:#f6f7f9;--panel:#fff;--fg:#1c2230;--muted:#5f6878;--line:#e2e5ea;--grid:#eceef2;--ok:#1f7a4d;--warn:#a15c00;
+--c1:#2f6fdb;--c2:#d9772b;--c3:#2a9d8f;--c4:#8e5bd1;--c5:#c9476b;--c6:#6b8e23;--r:10px;
+--sans:"Roboto",system-ui,-apple-system,"Segoe UI",sans-serif;color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--bg:#12151b;--panel:#1a1f27;--fg:#e8ebf0;--muted:#9aa3b2;--line:#2b313c;--grid:#232933;--ok:#5fcf97;--warn:#f0b35a;
+--c1:#6a9cf0;--c2:#f0a060;--c3:#4cc4b4;--c4:#b48ef0;--c5:#ef7b9b;--c6:#a3c55a;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.5 var(--sans);font-variant-numeric:tabular-nums}
+.wrap{max-width:1200px;margin:0 auto;padding:32px max(16px,env(safe-area-inset-left)) 48px;display:flex;flex-direction:column;gap:32px}
+h1{font-size:28px;font-weight:500;margin:0;text-wrap:balance}
+h2{font-size:18px;font-weight:500;margin:0}
+h3{font-size:15px;font-weight:500;margin:0}
+.sub,.note{color:var(--muted);font-size:12px;margin:0}
+.take{margin:0;max-width:72ch;font-size:15px}
+.head{display:flex;flex-direction:column;gap:6px}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,170px),1fr));gap:12px}
+.tile,.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r)}
+.tile{padding:14px 18px;display:flex;flex-direction:column;gap:4px}
+.tile .lbl{color:var(--muted);font-size:12px}.tile .big{font-size:28px;line-height:1.1}
+.sec{display:flex;flex-direction:column;gap:12px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,360px),1fr));gap:12px}
+.card{padding:18px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.chart{position:relative}
+.legend{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:12px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px}.legend i{width:10px;height:10px;border-radius:3px}
+.tip{position:absolute;pointer-events:none;background:var(--panel);border:1px solid var(--line);border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,.15);padding:6px 10px;font-size:12px;white-space:nowrap;z-index:2}
+.tip .t{color:var(--muted)}
+.tbox{overflow:auto;max-height:480px}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{position:sticky;top:0;background:var(--panel);color:var(--muted);font-weight:500}
+th button{all:unset;cursor:pointer}th button:focus-visible{outline:2px solid var(--c1)}
+.n{text-align:right}
+.pill{display:inline-block;padding:1px 8px;border-radius:999px;border:1px solid var(--line);white-space:nowrap}
+.pill.ok{color:var(--ok)}.pill.warn{color:var(--warn)}.pill.muted{color:var(--muted)}
+.bar{display:inline-block;height:6px;border-radius:3px;vertical-align:middle;margin-right:6px}
+input[type=search]{font:inherit;font-size:13px;padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--fg);width:min(100%,320px)}
+footer{color:var(--muted);font-size:12px}
+footer a{color:var(--c1)}
+@media (max-width:640px){.hide-sm{display:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="head">
+    <h1>Métricas UX · Sprint 26.10.1.0</h1>
+    <p class="sub">Experiência do Usuário (UX) · 09 a 15 out 2026 · sprint em andamento · dados do Redmine em 15/10/2026, 11h</p>
+    <p class="take" id="resumo"></p>
+  </header>
+  <div class="tiles" id="tiles"></div>
+
+  <section class="sec"><h2>Por pessoa</h2>
+    <div class="grid">
+      <div class="card"><h3>Horas por pessoa e atividade</h3><p class="note">Total lançado por pessoa, dividido por tipo de atividade</p><div class="legend" id="leg-pessoa"></div><div class="chart" id="ch-pessoa"></div></div>
+      <div class="card"><h3>Resumo por pessoa</h3><p class="note">Tarefas tocadas = tarefas com pelo menos um apontamento da pessoa</p>
+        <div class="tbox"><table id="tb-pessoa"><thead><tr><th>Pessoa</th><th class="n">Horas</th><th class="n">% do total</th><th class="n">Tarefas tocadas</th><th class="n">Horas produção</th><th class="hide-sm">Atividade principal</th></tr></thead><tbody></tbody></table></div></div>
+    </div>
+  </section>
+
+  <section class="sec"><h2>Por projeto</h2>
+    <div class="grid">
+      <div class="card"><h3>Horas por projeto</h3><p class="note">Projeto = história-mãe da tarefa no Redmine; cores por pessoa</p><div class="legend" id="leg-projeto"></div><div class="chart" id="ch-projeto"></div></div>
+      <div class="card"><h3>Andamento por projeto</h3><p class="note">Tarefas da sprint em cada projeto e quantas já foram concluídas</p>
+        <div class="tbox"><table id="tb-projeto"><thead><tr><th>Projeto</th><th class="hide-sm">Produto</th><th class="n">Tarefas</th><th class="n">Concluídas</th><th>% concl.</th><th class="n">Horas</th></tr></thead><tbody></tbody></table></div></div>
+    </div>
+  </section>
+
+  <section class="sec"><h2>Por atividade</h2>
+    <div class="grid">
+      <div class="card"><h3>Horas por atividade</h3><p class="note">Atividade do apontamento de horas; cores por pessoa</p><div class="legend" id="leg-atividade"></div><div class="chart" id="ch-atividade"></div></div>
+      <div class="card"><h3>Horas por dia</h3><p class="note">Dias úteis da sprint (12/10 foi feriado); cores por pessoa</p><div class="legend" id="leg-dia"></div><div class="chart" id="ch-dia"></div></div>
+    </div>
+  </section>
+
+  <section class="sec"><h2>Tarefas da sprint</h2>
+    <div class="card">
+      <input type="search" id="busca" placeholder="Buscar tarefa, projeto, pessoa ou status" aria-label="Buscar tarefas">
+      <div class="tbox"><table id="tb-tarefas"><thead><tr>
+        <th><button data-k="tarefa">#</button></th><th><button data-k="titulo">Tarefa</button></th><th class="hide-sm"><button data-k="projeto">Projeto</button></th>
+        <th><button data-k="situacao">Situação</button></th><th class="hide-sm"><button data-k="status">Status</button></th><th class="n"><button data-k="progresso">% feito</button></th>
+        <th class="hide-sm"><button data-k="pessoas">Pessoas</button></th><th class="n"><button data-k="horas">Horas</button></th></tr></thead><tbody></tbody></table></div>
+    </div>
+  </section>
+
+  <footer>Fonte: <a href="https://redmine.questor.com.br/versions/6532" target="_blank" rel="noopener">Redmine · versão 26.10.1.0</a> (tarefas com versão-alvo 26.10.1.0 e apontamentos de horas do projeto UX entre 09 e 15/10/2026). Concluída = Fechada, Pronto ou Arquivada. Rituais = Reunião + Refinamento de backlog.</footer>
+</div>
+
+<script>
+const HORAS = [{"lancamento": 1, "tarefa": 2371284, "pessoa": "Bianca Pontes", "atividade": "Prototipação", "horas": 1.3, "dia": "2026-10-15", "projeto": "Ícone Atualizar Plano Consolidado", "produto": "Fiscal"}, {"lancamento": 2, "tarefa": 2371282, "pessoa": "Guilherme Silva", "atividade": "Validação", "horas": 0.17, "dia": "2026-10-15", "projeto": "Sequência de relatórios FPA", "produto": "Folha"}, {"lancamento": 3, "tarefa": 2371283, "pessoa": "Guilherme Silva", "atividade": "Validação", "horas": 0.17, "dia": "2026-10-15", "projeto": "Pesquisa de Satisfação QDesk", "produto": "Zen"}, {"lancamento": 4, "tarefa": 2371249, "pessoa": "Guilherme Silva", "atividade": "Ideação", "horas": 1.82, "dia": "2026-10-15", "projeto": "Movimentos Fiscais", "produto": "Fiscal"}, {"lancamento": 5, "tarefa": 2371311, "pessoa": "Bianca Pontes", "atividade": "Reunião", "horas": 0.33, "dia": "2026-10-15", "projeto": "Rituais da sprint", "produto": "Operação"}, {"lancamento": 6, "tarefa": 2371110, "pessoa": "Guilherme Silva", "atividade": "Reunião", "horas": 0.32, "dia": "2026-10-15", "projeto": "Rituais da sprint", "produto": "Operação"}, {"lancamento": 7, "tarefa": 2371247, "pessoa": "Guilherme Silva", "atividade": "Pesquisa", "horas": 0.5, "dia": "2026-10-15", "projeto": "Movimentos Fiscais", "produto": "Fiscal"}, {"lancamento": 8, "tarefa": 2371249, "pessoa": "Guilherme Silva", "atividade": "Ideação", "horas": 1, "dia": "2026-10-14", "projeto": "Movimentos Fiscais", "produto": "Fiscal"}, {"lancamento": 9, "tarefa": 2371284, "pessoa": "Bianca Pontes", "atividade": "Prototipação", "horas": 1.7, "dia": "2026-10-14", "projeto": "Ícone Atualizar Plano Consolidado", "produto": "Fiscal"}, {"lancamento": 10, "tarefa": 2371247, "pessoa": "Guilherme Silva", "atividade": "Pesquisa", "horas": 1, "dia": "2026-10-14", "projeto": "Movimentos Fiscais", "produto": "Fiscal"}, {"lancamento": 11, "tarefa": 2371242, "pessoa": "Bianca Pontes", "atividade": "Validação", "horas": 0.17, "dia": "2026-10-14", "projeto": "Acessibilidade: contraste de cor", "produto": "Aurum Web"}, {"lancamento": 12, "tarefa": 2371283, "pessoa": "Bianca Pontes", "atividade": "Ideação", "horas": 2, "dia": "2026-10-14", "projeto": "Pesquisa de Satisfação QDesk", "produto": "Zen"}, {"lancamento": 13, "tarefa": 2371244, "pessoa": "Guilherme Silva", "atividade": "Validação", "horas": 1.25, "dia": "2026-10-14", "projeto": "Acessibilidade: contraste de cor", "produto": "Aurum Web"}, {"lancamento": 14, "tarefa": 2371244, "pessoa": "Bianca Pontes", "atividade": "Validação", "horas": 1, "dia": "2026-10-14", "projeto": "Acessibilidade: contraste de cor", "produto": "Aurum Web"}, {"lancamento": 15, "tarefa": 2371242, "pessoa": "Guilherme Silva", "atividade": "Ideação", "horas": 2.5, "dia": "2026-10-14", "projeto": "Acessibilidade: contraste de cor", "produto": "Aurum Web"}, {"lancamento": 16, "tarefa": 2371241, "pessoa": "Bianca Pontes", "atividade": "Validação", "horas": 0.67, "dia": "2026-10-14", "projeto": "Acessibilidade: contraste de cor", "produto": "Aurum Web"}, {"lancamento": 17, "tarefa": 2371282, "pessoa": "Bianca Pontes", "atividade": "Prototipação", "horas": 1.5, "dia": "2026-10-14", "projeto": "Sequência de relatórios FPA", "produto": "Folha"}, {"lancamento": 18, "tarefa": 2371110, "pessoa": "Guilherme Silva", "atividade": "Reunião", "horas": 0.25, "dia": "2026-10-14", "projeto": "Rituais da sprint", "produto": "Operação"}, {"lancamento": 19, "tarefa": 2371247, "pessoa": "Guilherme Silva", "atividade": "Pesquisa", "horas": 1, "dia": "2026-10-14", "projeto": "Movimentos Fiscais", "produto": "Fiscal"}, {"lancamento": 20, "tarefa": 2371278, "pessoa": "Bianca Pontes", "atividade": "Prototipação", "horas": 2.3, "dia": "2026-10-13", "projeto": "Site Questor", "produto": "Cloud"}, {"lancamento": 21, "tarefa": 2371247, "pessoa": "Guilherme Silva", "atividade": "Pesquisa", "horas": 0.32, "dia": "2026-10-13", "projeto": "Movimentos Fiscais", "produto": "Fiscal"}, {"lancamento": 22, "tarefa": 2371277, "pessoa": "Guilherme Silva", "atividade": "Validação", "horas": 0.17, "dia": "2026-10-13", "projeto": "Site Questor", "produto": "Cloud"}, {"lancamento": 23, "tarefa": 2371281, "pessoa": "Guilherme Silva", "atividade": "Validação", "horas": 0.08, "dia": "2026-10-13", "projeto": "Sequência de relatórios FPA", "produto": "Folha"}, {"lancamento": 24, "tarefa": 2371241, "pessoa": "Guilherme Silva", "atividade": "Ideação", "horas": 2.92, "dia": "2026-10-13", "projeto": "Acessibilidade: contraste de cor", "produto": "Aurum Web"}, {"lancamento": 25, "tarefa": 2371243, "pessoa": "Bianca Pontes", "atividade": "Validação", "horas": 0.33, "dia": "2026-10-13", "projeto": "Acessibilidade: contraste de cor", "produto": "Aurum Web"}, {"lancamento": 26, "tarefa": 2371311, "pessoa": "Bianca Pontes", "atividade": "Reunião", "horas": 0.5, "dia": "2026-10-13", "projeto": "Rituais da sprint", "produto": "Operação"}, {"lancamento": 27, "tarefa": 2371277, "pessoa": "Bianca Pontes", "atividade": "Prototipação", "horas": 3, "dia": "2026-10-13", "projeto": "Site Questor", "produto": "Cloud"}, {"lancamento": 28, "tarefa": 2371247, "pessoa": "Guilherme Silva", "atividade": "Pesquisa", "horas": 1.23, "dia": "2026-10-13", "projeto": "Movimentos Fiscais", "produto": "Fiscal"}, {"lancamento": 29, "tarefa": 2371281, "pessoa": "Bianca Pontes", "atividade": "Validação", "horas": 1, "dia": "2026-10-13", "projeto": "Sequência de relatórios FPA", "produto": "Folha"}, {"lancamento": 30, "tarefa": 2371110, "pessoa": "Guilherme Silva", "atividade": "Reunião", "horas": 0.33, "dia": "2026-10-13", "projeto": "Rituais da sprint", "produto": "Operação"}, {"lancamento": 31, "tarefa": 2371243, "pessoa": "Guilherme Silva", "atividade": "Ideação", "horas": 2, "dia": "2026-10-13", "projeto": "Acessibilidade: contraste de cor", "produto": "Aurum Web"}, {"lancamento": 32, "tarefa": 2371243, "pessoa": "Guilherme Silva", "atividade": "Ideação", "horas": 0.5, "dia": "2026-10-09", "projeto": "Acessibilidade: contraste de cor", "produto": "Aurum Web"}, {"lancamento": 33, "tarefa": 2371311, "pessoa": "Bianca Pontes", "atividade": "Reunião", "horas": 0.5, "dia": "2026-10-09", "projeto": "Rituais da sprint", "produto": "Operação"}, {"lancamento": 34, "tarefa": 2371107, "pessoa": "Bianca Pontes", "atividade": "Refinamento de backlog", "horas": 5.5, "dia": "2026-10-09", "projeto": "Rituais da sprint", "produto": "Operação"}, {"lancamento": 35, "tarefa": 2371110, "pessoa": "Guilherme Silva", "atividade": "Validação", "horas": 0.5, "dia": "2026-10-09", "projeto": "Rituais da sprint", "produto": "Operação"}, {"lancamento": 36, "tarefa": 2371110, "pessoa": "Guilherme Silva", "atividade": "Reunião", "horas": 0.5, "dia": "2026-10-09", "projeto": "Rituais da sprint", "produto": "Operação"}, {"lancamento": 37, "tarefa": 2371108, "pessoa": "Guilherme Silva", "atividade": "Refinamento de backlog", "horas": 5, "dia": "2026-10-09", "projeto": "Rituais da sprint", "produto": "Operação"}, {"lancamento": 38, "tarefa": 2371106, "pessoa": "Guilherme Silva", "atividade": "Reunião", "horas": 0.5, "dia": "2026-10-09", "projeto": "Rituais da sprint", "produto": "Operação"}];
+const TAREFAS = [{"tarefa": 2371106, "titulo": "[3] Pós Planning - Organização do Agile Board", "projeto": "Rituais da sprint", "produto": "Operação", "tipo": "Atividade", "status": "Fechada", "situacao": "Concluída", "progresso": 100, "responsavel": "Time UX", "pessoas": "Guilherme Silva", "horas": 0.5}, {"tarefa": 2371107, "titulo": "[1] Groomming Bianca", "projeto": "Rituais da sprint", "produto": "Operação", "tipo": "Atividade", "status": "Fechada", "situacao": "Concluída", "progresso": 100, "responsavel": "Bianca David de Pontes", "pessoas": "Bianca Pontes", "horas": 5.5}, {"tarefa": 2371108, "titulo": "[1] Groomming Guilherme", "projeto": "Rituais da sprint", "produto": "Operação", "tipo": "Atividade", "status": "Fechada", "situacao": "Concluída", "progresso": 100, "responsavel": "Guilherme Neves Alves Silva", "pessoas": "Guilherme Silva", "horas": 5.0}, {"tarefa": 2371110, "titulo": "[Reunião Diária]  Acompanhamento Daily Tecnologia", "projeto": "Rituais da sprint", "produto": "Operação", "tipo": "Atividade", "status": "Fechada", "situacao": "Concluída", "progresso": 100, "responsavel": "Time UX", "pessoas": "Guilherme Silva", "horas": 1.9}, {"tarefa": 2371151, "titulo": "Icone Atualizar Plano Consolidado", "projeto": "Ícone Atualizar Plano Consolidado", "produto": "Fiscal", "tipo": "Atividade", "status": "Sprint Backlog", "situacao": "A fazer", "progresso": 0, "responsavel": "Time UX", "pessoas": "—", "horas": 0.0}, {"tarefa": 2371241, "titulo": "[cor][ideação] [18] Testar aplicação pt1", "projeto": "Acessibilidade: contraste de cor", "produto": "Aurum Web", "tipo": "UX/UI - Design System", "status": "Fechada", "situacao": "Concluída", "progresso": 100, "responsavel": "Time UX", "pessoas": "Bianca Pontes, Guilherme Silva", "horas": 3.59}, {"tarefa": 2371242, "titulo": "[cor][ideação] [19] Testar aplicação pt2", "projeto": "Acessibilidade: contraste de cor", "produto": "Aurum Web", "tipo": "UX/UI - Design System", "status": "Fechada", "situacao": "Concluída", "progresso": 100, "responsavel": "Time UX", "pessoas": "Bianca Pontes, Guilherme Silva", "horas": 2.67}, {"tarefa": 2371243, "titulo": "[cor][ideação] [20] Ideação fonte", "projeto": "Acessibilidade: contraste de cor", "produto": "Aurum Web", "tipo": "UX/UI - Design System", "status": "Fechada", "situacao": "Concluída", "progresso": 100, "responsavel": "Time UX", "pessoas": "Bianca Pontes, Guilherme Silva", "horas": 2.83}, {"tarefa": 2371244, "titulo": "[cor][ideação] [21] Design critique", "projeto": "Acessibilidade: contraste de cor", "produto": "Aurum Web", "tipo": "UX/UI - Validação", "status": "Fechada", "situacao": "Concluída", "progresso": 100, "responsavel": "Time UX", "pessoas": "Bianca Pontes, Guilherme Silva", "horas": 2.25}, {"tarefa": 2371245, "titulo": "[cor][ideação] [22] Refinamento", "projeto": "Acessibilidade: contraste de cor", "produto": "Aurum Web", "tipo": "UX/UI - Design System", "status": "Arquivada", "situacao": "Concluída", "progresso": 100, "responsavel": "Time UX", "pessoas": "—", "horas": 0.0}, {"tarefa": 2371246, "titulo": "[cor][ideação] [23] Conversa com Mkt", "projeto": "Acessibilidade: contraste de cor", "produto": "Aurum Web", "tipo": "UX/UI - Validação", "status": "Ag. Desenv.", "situacao": "Em andamento", "progresso": 40, "responsavel": "Time UX", "pessoas": "—", "horas": 0.0}, {"tarefa": 2371247, "titulo": "[MFE][Entendimento] [22] Recrutamento Pesquisa Externa", "projeto": "Movimentos Fiscais", "produto": "Fiscal", "tipo": "UX - Tarefa", "status": "Em Desenv.", "situacao": "Em andamento", "progresso": 50, "responsavel": "Guilherme Neves Alves Silva", "pessoas": "Guilherme Silva", "horas": 4.05}, {"tarefa": 2371248, "titulo": "[MFE][Entendimento] [23] Entrega da Pesquisa", "projeto": "Movimentos Fiscais", "produto": "Fiscal", "tipo": "UX - Tarefa", "status": "Ag. Desenv.", "situacao": "Em andamento", "progresso": 40, "responsavel": "Time UX", "pessoas": "—", "horas": 0.0}, {"tarefa": 2371249, "titulo": "[MFE][ideação] [24] Ideação Inicial", "projeto": "Movimentos Fiscais", "produto": "Fiscal", "tipo": "UX - Tarefa", "status": "Validação", "situacao": "Em andamento", "progresso": 80, "responsavel": "Time UX", "pessoas": "Guilherme Silva", "horas": 2.82}, {"tarefa": 2371250, "titulo": "[MFE][ideação] [25] Wireframe", "projeto": "Movimentos Fiscais", "produto": "Fiscal", "tipo": "UI - Prototipação", "status": "Em Desenv.", "situacao": "Em andamento", "progresso": 50, "responsavel": "Guilherme Neves Alves Silva", "pessoas": "—", "horas": 0.0}, {"tarefa": 2371277, "titulo": "[Wireframe] [6] Ideação parte 5", "projeto": "Site Questor", "produto": "Cloud", "tipo": "UI - Prototipação", "status": "Fechada", "situacao": "Concluída", "progresso": 100, "responsavel": "Time UX", "pessoas": "Bianca Pontes, Guilherme Silva", "horas": 3.17}, {"tarefa": 2371278, "titulo": "[Wireframe] [7] Ideação parte 6", "projeto": "Site Questor", "produto": "Cloud", "tipo": "UI - Prototipação", "status": "Fechada", "situacao": "Concluída", "progresso": 100, "responsavel": "Time UX", "pessoas": "Bianca Pontes", "horas": 2.3}, {"tarefa": 2371279, "titulo": "[Wireframe] [8] Validação", "projeto": "Site Questor", "produto": "Cloud", "tipo": "UX/UI - Validação", "status": "Ag. Desenv.", "situacao": "Em andamento", "progresso": 40, "responsavel": "Time UX", "pessoas": "—", "horas": 0.0}, {"tarefa": 2371280, "titulo": "[Versão Final] [1] Versão final - ajusts pós validação", "projeto": "Site Questor", "produto": "Cloud", "tipo": "UI - Prototipação", "status": "Ag. Desenv.", "situacao": "Em andamento", "progresso": 40, "responsavel": "Time UX", "pessoas": "—", "horas": 0.0}, {"tarefa": 2371281, "titulo": "[Validação] [11] Validação técnica", "projeto": "Sequência de relatórios FPA", "produto": "Folha", "tipo": "UX/UI - Validação", "status": "Fechada", "situacao": "Concluída", "progresso": 100, "responsavel": "Time UX", "pessoas": "Bianca Pontes, Guilherme Silva", "horas": 1.08}, {"tarefa": 2371282, "titulo": "[Validação] [12] Ajustes pós validação", "projeto": "Sequência de relatórios FPA", "produto": "Folha", "tipo": "UI - Prototipação", "status": "Fechada", "situacao": "Concluída", "progresso": 100, "responsavel": "Time UX", "pessoas": "Bianca Pontes, Guilherme Silva", "horas": 1.67}, {"tarefa": 2371283, "titulo": "[Pesquisa de Satisfação] [5] Documentação de Entrega Final", "projeto": "Pesquisa de Satisfação QDesk", "produto": "Zen", "tipo": "UX/UI - Entrega Final", "status": "Pronto", "situacao": "Concluída", "progresso": 100, "responsavel": "Time UX", "pessoas": "Bianca Pontes, Guilherme Silva", "horas": 2.17}, {"tarefa": 2371284, "titulo": "[Icone] [1] Criação Icone parte 1", "projeto": "Ícone Atualizar Plano Consolidado", "produto": "Fiscal", "tipo": "UI - Prototipação", "status": "Validação", "situacao": "Em andamento", "progresso": 80, "responsavel": "Time UX", "pessoas": "Bianca Pontes", "horas": 3.0}, {"tarefa": 2371285, "titulo": "[Icone] [2] Criação Icone parte 2", "projeto": "Ícone Atualizar Plano Consolidado", "produto": "Fiscal", "tipo": "UX - Tarefa", "status": "Em Desenv.", "situacao": "Em andamento", "progresso": 50, "responsavel": "Bianca David de Pontes", "pessoas": "—", "horas": 0.0}, {"tarefa": 2371311, "titulo": "[Reunião Diária]  Acompanhamento Daily Folha/QDesk (ZEN)", "projeto": "Rituais da sprint", "produto": "Operação", "tipo": "UX - Tarefa", "status": "Fechada", "situacao": "Concluída", "progresso": 100, "responsavel": "Time UX", "pessoas": "Bianca Pontes", "horas": 1.33}];
+const RIT = ['Reunião','Refinamento de backlog'];
+const SVG = 'http://www.w3.org/2000/svg';
+const nf = new Intl.NumberFormat('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1});
+const pf = new Intl.NumberFormat('pt-BR',{style:'percent',maximumFractionDigits:0});
+const fh = v => nf.format(v)+' h';
+const sum = (a,f) => a.reduce((s,x)=>s+f(x),0);
+const group = (a,f) => { const m=new Map(); a.forEach(x=>{const k=f(x); if(!m.has(k)) m.set(k,[]); m.get(k).push(x);}); return [...m]; };
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const PAL = ['--c1','--c2','--c3','--c4','--c5','--c6'];
+const el = (tag,attrs={},parent) => { const e=document.createElementNS(SVG,tag); for(const k in attrs) e.setAttribute(k,attrs[k]); if(parent) parent.appendChild(e); return e; };
+const fdia = s => { const [y,m,d]=s.split('-'); return ['dom','seg','ter','qua','qui','sex','sáb'][new Date(Date.UTC(+y,+m-1,+d)).getUTCDay()]+' '+d+'/'+m; };
+
+// ---- cálculos
+const total = sum(HORAS,r=>r.horas), rit = sum(HORAS.filter(r=>RIT.includes(r.atividade)),r=>r.horas);
+const concl = TAREFAS.filter(t=>t.situacao==='Concluída').length, andam = TAREFAS.filter(t=>t.situacao==='Em andamento').length;
+const porPessoa = group(HORAS,r=>r.pessoa).map(([pessoa,rs])=>{ const h=sum(rs,r=>r.horas); const at=group(rs,r=>r.atividade).map(([a,v])=>[a,sum(v,r=>r.horas)]).sort((a,b)=>b[1]-a[1]);
+  return {pessoa,horas:h,pct:h/total,tarefas:new Set(rs.map(r=>r.tarefa)).size,prod:sum(rs.filter(r=>!RIT.includes(r.atividade)),r=>r.horas),principal:at[0][0]}; }).sort((a,b)=>b.horas-a.horas);
+const PESSOAS = porPessoa.map(p=>p.pessoa);
+const pColor = p => css(PAL[PESSOAS.indexOf(p)%PAL.length]);
+const porProjeto = group(TAREFAS,t=>t.projeto).map(([projeto,ts])=>({projeto,produto:ts[0].produto,tarefas:ts.length,concl:ts.filter(t=>t.situacao==='Concluída').length,
+  horas:sum(HORAS.filter(r=>r.projeto===projeto),r=>r.horas)})).sort((a,b)=>b.horas-a.horas);
+const pivot = (cat,ser) => { const o=[]; group(HORAS,r=>r[cat]).forEach(([c,rs])=>group(rs,r=>r[ser]).forEach(([s,v])=>o.push({cat:c,ser:s,horas:sum(v,r=>r.horas)}))); return o; };
+
+// ---- topo
+document.getElementById('resumo').innerHTML = `<b>${concl}</b> de <b>${TAREFAS.length}</b> tarefas concluídas, com <b>${fh(total)}</b> lançadas. ${pf.format(rit/total)} das horas foram rituais (grooming, dailies, planning); o restante foi produção de UX.`;
+const tiles = [['Horas lançadas',fh(total),'Soma dos apontamentos na sprint'],['Tarefas concluídas',pf.format(concl/TAREFAS.length),`${concl} de ${TAREFAS.length} (Fechada, Pronto ou Arquivada)`],
+  ['Em andamento',andam,'Em desenv., validação ou aguardando'],['Horas em produção UX',fh(total-rit),'Pesquisa, ideação, prototipação e validação'],['Pessoas com horas',PESSOAS.length,'Quem lançou horas na sprint']];
+const tw=document.getElementById('tiles'); tiles.forEach(([l,v,n])=>{const d=document.createElement('div');d.className='tile';
+  [['lbl',l],['big',v],['note',n]].forEach(([c,t])=>{const s=document.createElement('span');s.className=c;s.textContent=t;d.appendChild(s);}); tw.appendChild(d);});
+
+// ---- helpers de gráfico
+function legend(id,keys,color){const L=document.getElementById(id);L.innerHTML='';keys.forEach(k=>{const s=document.createElement('span'),i=document.createElement('i');i.style.background=color(k);s.append(i,k);L.appendChild(s);});}
+function tip(box){let t=box.querySelector('.tip'); if(!t){t=document.createElement('div');t.className='tip';t.hidden=true;box.appendChild(t);}
+  return {show(ev,title,lines){t.innerHTML='';const a=document.createElement('div');a.className='t';a.textContent=title;t.appendChild(a);
+    lines.forEach(([c,n,v])=>{const l=document.createElement('div');l.style.cssText='display:flex;gap:6px;align-items:center';if(c){const i=document.createElement('i');i.style.cssText=`width:8px;height:8px;border-radius:2px;background:${c}`;l.appendChild(i);}l.append(`${n}: ${v}`);t.appendChild(l);});
+    t.hidden=false;const r=box.getBoundingClientRect();let x=ev.clientX-r.left+12;if(x+t.offsetWidth>r.width)x=Math.max(0,ev.clientX-r.left-t.offsetWidth-12);t.style.left=x+'px';t.style.top=(ev.clientY-r.top+12)+'px';},hide(){t.hidden=true;}};}
+function ticks(max,n=4){const step=[0.5,1,2,5,10,20].find(s=>max/s<=n)||Math.ceil(max/n);const out=[];for(let v=0;v<=max+1e-9;v+=step)out.push(+v.toFixed(2));if(out[out.length-1]<max)out.push(+(out[out.length-1]+step).toFixed(2));return out;}
+
+function hstack(id,rows,serOrder,color){
+  const box=document.getElementById(id); box.querySelectorAll('svg').forEach(s=>s.remove());
+  const cats=group(rows,r=>r.cat).map(([c,v])=>[c,sum(v,r=>r.horas)]).sort((a,b)=>b[1]-a[1]);
+  const W=Math.max(280,box.clientWidth),bh=22,gap=12,top=4,bottom=24,H=top+cats.length*(bh+gap)+bottom;
+  const svg=el('svg',{width:'100%',viewBox:`0 0 ${W} ${H}`,height:H},box);
+  let lw=0;cats.forEach(([c])=>{const t=el('text',{'font-size':12},svg);t.textContent=c;lw=Math.max(lw,t.getComputedTextLength());t.remove();});
+  const left=Math.min(lw+10,W*.45),right=44,tk=ticks(cats[0][1]),max=tk[tk.length-1],x=v=>left+(W-right-left)*v/max;
+  tk.forEach(v=>{el('line',{x1:x(v),x2:x(v),y1:top,y2:H-bottom,stroke:css('--grid')},svg);const t=el('text',{x:x(v),y:H-6,'text-anchor':'middle','font-size':11,fill:css('--muted')},svg);t.textContent=v+' h';});
+  const tt=tip(box);
+  cats.forEach(([c,tot],i)=>{const y=top+i*(bh+gap);let acc=0;
+    const lab=el('text',{x:left-8,y:y+bh/2,dy:'0.35em','text-anchor':'end','font-size':12,fill:css('--fg')},svg);lab.textContent=c;
+    const segs=serOrder.map(s=>{const r=rows.find(r=>r.cat===c&&r.ser===s);const h=r?r.horas:0;const o={s,h,x0:acc};acc+=h;return o;}).filter(o=>o.h>0);
+    segs.forEach(d=>{const rc=el('rect',{x:x(d.x0),y,width:Math.max(0,x(d.x0+d.h)-x(d.x0)-1),height:bh,rx:3,fill:color(d.s)},svg);
+      rc.addEventListener('mousemove',ev=>tt.show(ev,c,segs.map(s=>[color(s.s),s.s,fh(s.h)]).concat([[null,'Total',fh(tot)]])));rc.addEventListener('mouseleave',()=>tt.hide());});
+    const v=el('text',{x:x(tot)+6,y:y+bh/2,dy:'0.35em','font-size':12,fill:css('--muted')},svg);v.textContent=nf.format(tot);});
+}
+function vgroup(id,rows){
+  const box=document.getElementById(id); box.querySelectorAll('svg').forEach(s=>s.remove());
+  const dias=[...new Set(rows.map(r=>r.cat))].sort(),W=Math.max(280,box.clientWidth),H=220,m={t:18,r:8,b:26,l:38};
+  const svg=el('svg',{width:'100%',viewBox:`0 0 ${W} ${H}`,height:H},box);
+  const tk=ticks(Math.max(...rows.map(r=>r.horas))),max=tk[tk.length-1],y=v=>H-m.b-(H-m.b-m.t)*v/max;
+  tk.forEach(v=>{el('line',{x1:m.l,x2:W-m.r,y1:y(v),y2:y(v),stroke:css('--grid')},svg);const t=el('text',{x:m.l-6,y:y(v),dy:'0.35em','text-anchor':'end','font-size':11,fill:css('--muted')},svg);t.textContent=v+' h';});
+  const bandW=(W-m.l-m.r)/dias.length,inner=bandW*.75,bw=Math.min(32,inner/PESSOAS.length-4),tt=tip(box);
+  dias.forEach((d,i)=>{const cx=m.l+bandW*i+bandW/2;const lb=el('text',{x:cx,y:H-8,'text-anchor':'middle','font-size':11,fill:css('--muted')},svg);lb.textContent=fdia(d);
+    const rs=PESSOAS.map(p=>({s:p,h:(rows.find(r=>r.cat===d&&r.ser===p)||{horas:0}).horas}));const gw=rs.length*(bw+4)-4;
+    rs.forEach((r,j)=>{const rc=el('rect',{x:cx-gw/2+j*(bw+4),width:bw,y:y(r.h),height:Math.max(0,y(0)-y(r.h)),rx:4,fill:pColor(r.s)},svg);
+      rc.addEventListener('mousemove',ev=>tt.show(ev,fdia(d),rs.map(x=>[pColor(x.s),x.s,fh(x.h)])));rc.addEventListener('mouseleave',()=>tt.hide());});});
+}
+
+// ---- tabelas
+function fillRows(tbId,rows){const tb=document.querySelector(`#${tbId} tbody`);tb.innerHTML='';rows.forEach(cells=>{const tr=document.createElement('tr');
+  cells.forEach(([v,cls])=>{const td=document.createElement('td');if(cls)td.className=cls;if(v instanceof Node)td.appendChild(v);else td.textContent=v;tr.appendChild(td);});tb.appendChild(tr);});}
+fillRows('tb-pessoa',porPessoa.map(p=>[[p.pessoa],[nf.format(p.horas),'n'],[pf.format(p.pct),'n'],[p.tarefas,'n'],[nf.format(p.prod),'n'],[p.principal,'hide-sm']]));
+fillRows('tb-projeto',porProjeto.map(p=>{const f=document.createElement('span'),b=document.createElement('span');const r=p.concl/p.tarefas;b.className='bar';b.style.width=Math.round(r*48)+'px';
+  b.style.background=r===1?css('--ok'):css('--muted');f.append(b,pf.format(r));return [[p.projeto],[p.produto,'hide-sm'],[p.tarefas,'n'],[p.concl,'n'],[f],[nf.format(p.horas),'n']];}));
+let sortK='tarefa',dir=1;
+function drawTarefas(){const q=document.getElementById('busca').value.trim().toLowerCase();
+  const rows=TAREFAS.filter(r=>!q||[r.tarefa,r.titulo,r.projeto,r.situacao,r.status,r.pessoas].join(' ').toLowerCase().includes(q))
+    .sort((a,b)=>{const va=a[sortK],vb=b[sortK];return (typeof va==='number'?va-vb:String(va).localeCompare(String(vb),'pt-BR'))*dir;});
+  fillRows('tb-tarefas',rows.map(r=>{const a=document.createElement('a');a.href='https://redmine.questor.com.br/issues/'+r.tarefa;a.target='_blank';a.rel='noopener';a.textContent=r.tarefa;a.style.color='var(--c1)';
+    const p=document.createElement('span');p.className='pill '+(r.situacao==='Concluída'?'ok':r.situacao==='Em andamento'?'warn':'muted');p.textContent=r.situacao;
+    return [[a],[r.titulo],[r.projeto,'hide-sm'],[p],[r.status,'hide-sm'],[r.progresso+'%','n'],[r.pessoas,'hide-sm'],[r.horas?nf.format(r.horas):'—','n']];}));}
+document.querySelectorAll('#tb-tarefas th button').forEach(b=>b.addEventListener('click',()=>{const k=b.dataset.k;if(sortK===k)dir=-dir;else{sortK=k;dir=1;}
+  document.querySelectorAll('#tb-tarefas th').forEach(th=>th.removeAttribute('aria-sort'));b.parentElement.setAttribute('aria-sort',dir>0?'ascending':'descending');drawTarefas();}));
+document.getElementById('busca').addEventListener('input',drawTarefas);
+
+// ---- gráficos
+function drawCharts(){
+  const pa=pivot('pessoa','atividade');const aOrder=group(pa,r=>r.ser).map(([a,v])=>[a,sum(v,r=>r.horas)]).sort((a,b)=>b[1]-a[1]).map(d=>d[0]);
+  const aColor=a=>css(PAL[aOrder.indexOf(a)%PAL.length]);
+  legend('leg-pessoa',aOrder,aColor);hstack('ch-pessoa',pa,aOrder,aColor);
+  ['projeto','atividade'].forEach(k=>{legend('leg-'+k,PESSOAS,pColor);hstack('ch-'+k,pivot(k,'pessoa'),PESSOAS,pColor);});
+  legend('leg-dia',PESSOAS,pColor);vgroup('ch-dia',pivot('dia','pessoa'));
+}
+drawTarefas();drawCharts();
+let rt;addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(drawCharts,150);});
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{drawCharts();});
+</script>
+</body>
+</html>
